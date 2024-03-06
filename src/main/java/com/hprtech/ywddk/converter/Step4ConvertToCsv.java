@@ -2,12 +2,16 @@ package com.hprtech.ywddk.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hprtech.ywddk.contants.Constant;
 import com.hprtech.ywddk.dto.PostDTO;
 import com.opencsv.CSVWriter;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,11 +19,12 @@ import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class CSVConverter {
+public class Step4ConvertToCsv {
     public static void main(String[] args) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        String filePath = "C:\\Users\\hp\\Desktop\\YWDDK\\inprogress\\antterwasnayestory\\posts.json";
-        String csvFilePath = "C:\\Users\\hp\\Desktop\\YWDDK\\inprogress\\antterwasnayestory\\posts.csv";
+        String filePath = Constant.typePathMap.get("posts");
+        String csvFilePath = Constant.typePathMap2.get("postsCsv");
+        deleteFile(csvFilePath);
         File file = new File(filePath);
 
         List<PostDTO> postDTOList = new ArrayList<>();
@@ -34,10 +39,11 @@ public class CSVConverter {
                     .content(jsonNode.get("content").get("rendered").asText())
                     .excerpt(jsonNode.get("excerpt").get("rendered").asText())
                     .featureImage(jsonNode.get("featured_media").asInt())
+                    .category(jsonNode.get("categories").toString().replace("[", "").replace("]", "").replace("\"", ""))
                     .postDate(jsonNode.get("date").asText())
                     .slug(jsonNode.get("slug").asText())
+                    .tag(jsonNode.get("categories").toString().replace("[", "").replace("]", "").replace("\"", ""))
                     .status(jsonNode.get("status").asText())
-                    .category(jsonNode.get("categories").toString().replace("[", "").replace("]", "").replace("\"", ""))
                     .build());
         }
 
@@ -81,5 +87,21 @@ public class CSVConverter {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(jsonNode.elements(), 0), false)
                 .map(JsonNode::asText)
                 .toArray(String[]::new);
+    }
+
+    public static void deleteFile(String filePath) {
+        // Use try-with-resources to automatically close the resources after use
+        try {
+            // Create a Path object from the file path string
+            Path path = Paths.get(filePath);
+
+            // Delete the file
+            Files.deleteIfExists(path);
+
+            System.out.println("File deleted successfully");
+        } catch (IOException e) {
+            // Handle the exception if the file deletion fails
+            e.printStackTrace();
+        }
     }
 }

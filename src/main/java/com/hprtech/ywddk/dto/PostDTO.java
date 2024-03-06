@@ -19,4 +19,5 @@ public class PostDTO {
     String postDate;
     String slug;
     String status;
+    String tag;
 }

@@ -1,7 +1,7 @@
 package com.hprtech.ywddk.util;
 
 public class DecodeToHindi {
-    private static String decodeUnicode(String input) {
+    public static String decodeUnicode(String input) {
         StringBuilder sb = new StringBuilder();
         StringBuilder currentToken = new StringBuilder();
 

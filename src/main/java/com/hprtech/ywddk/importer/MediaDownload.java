@@ -1,7 +1,8 @@
-package com.hprtech.ywddk.media;
+package com.hprtech.ywddk.importer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hprtech.ywddk.contants.Constant;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -22,32 +23,34 @@ public class MediaDownload {
     public static void main(String[] args) {
         ObjectMapper objectMapper = new ObjectMapper();
 
+        // Specify the path to your JSON file
+        String filePath = Constant.typePathMap.get("media");
+        String folderPath = Constant.mediaFolderPath;
+        File file = new File(filePath);
+
+        // Read JSON array from file and convert it to a List of objects
+        List<JsonNode> myObjects = null;
         try {
-            // Specify the path to your JSON file
-            String filePath = "C:\\Users\\Prakash\\Documents\\Personal-Work\\wordpress\\media\\media.json";
-            String folderPath = "C:\\Users\\Prakash\\Documents\\Personal-Work\\wordpress\\media";
-            File file = new File(filePath);
-
-            // Read JSON array from file and convert it to a List of objects
-            List<JsonNode> myObjects = objectMapper.readValue(file, objectMapper.getTypeFactory().constructCollectionType(List.class, JsonNode.class));
-
-            // Do something with the list of objects
-            for (JsonNode obj : myObjects) {
-                try {
-                    disableSSLValidation();
-                    downloadImage(obj.get("guid").get("rendered").asText(), folderPath);
-                    System.out.println("Image downloaded successfully.");
-                } catch (IOException e) {
-                    System.err.println("Error downloading image: " + e.getMessage());
-                }
-            }
+            myObjects = objectMapper.readValue(file, objectMapper.getTypeFactory().constructCollectionType(List.class, JsonNode.class));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
+
+        // Do something with the list of objects
+        for (JsonNode obj : myObjects) {
+            try {
+                disableSSLValidation();
+                downloadImage(obj.get("id").asInt(), obj.get("guid").get("rendered").asText(), folderPath);
+                System.out.println("Image downloaded successfully.");
+            } catch (IOException e) {
+                System.err.println("Error downloading image: " + e.getMessage());
+            }
+        }
+        System.out.println(">>> Done-----------");
     }
 
 
-    private static void disableSSLValidation() {
+    public static void disableSSLValidation() {
         try {
             TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
@@ -71,7 +74,7 @@ public class MediaDownload {
         }
     }
 
-    private static void downloadImage(String imageUrl, String folderPath) throws IOException {
+    private static void downloadImage(int id, String imageUrl, String folderPath) throws IOException {
         URL url = new URL(imageUrl);
 
         // Create the folder if it doesn't exist
@@ -81,6 +84,8 @@ public class MediaDownload {
         }
 
         // Get the file name from the URL
+//        String[] nameArr = imageUrl.substring(imageUrl.lastIndexOf('/') + 1).split("\\.");
+//        String fileName = nameArr[0] + "." + nameArr[1];
         String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
 
         // Create the destination path
